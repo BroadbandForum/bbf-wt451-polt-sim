@@ -50,7 +50,7 @@ This sublayer is controlled by CLI commands that allow to
 
 HowTo Build
 ===========
-The build machine must have gcc, g++, make, cmake and wget installed.
+The build machine must have gcc, g++, make, ccache, cmake and wget installed.
 Provided that these prerequisites are met, the build is invoked using
 "make" command.
 It will pull a number of third party packages, such as grpc, openssh,
