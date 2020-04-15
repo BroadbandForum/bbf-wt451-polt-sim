@@ -34,7 +34,7 @@ COPY . .
 # XXX probably don't need/want these make variables:
 #     CCACHE=n OPENSSL_VERSION=1.1.1
 RUN make \
-      CCACHE=n
+      OPENSSL_VERSION=1.1.1
 
 # XXX should now create some /usr/local/bin etc. links; or move build/fs
 #     subdirs to /usr/local?
