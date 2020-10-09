@@ -26,16 +26,20 @@
 macro(bcm_3rdparty_module_name MODULE_NAME VERSION)
     bcm_module_name(${MODULE_NAME})
     string(TOUPPER ${MODULE_NAME} _MOD_NAME_UPPER)
-    if(${_MOD_NAME_UPPER}_VERSION AND NOT ("${${_MOD_NAME_UPPER}_VERSION}" STREQUAL "${VERSION}"))
-        unset(${_MOD_NAME_UPPER}_VERSION CACHE)
-    endif()
     bcm_make_normal_option(${_MOD_NAME_UPPER}_VERSION STRING "${MODULE_NAME} version" "${VERSION}")
+
+    if(${_MOD_NAME_UPPER}_VERSION)
+        set(_VERSION ${${_MOD_NAME_UPPER}_VERSION})
+    else()
+        set(_VERSION ${VERSION})
+    endif()
 
     set(_${_MOD_NAME_UPPER}_TARGET ${MODULE_NAME}_${${_MOD_NAME_UPPER}_VERSION})
     set(_${_MOD_NAME_UPPER}_INSTALL_TOP ${CMAKE_BINARY_DIR}/fs)
 
-    set(_${_MOD_NAME_UPPER}_LOADED_FILE ${CMAKE_CURRENT_BINARY_DIR}/.${MODULE_NAME}_${VERSION}_loaded)
-    set(_${_MOD_NAME_UPPER}_INSTALLED_FILE ${CMAKE_CURRENT_BINARY_DIR}/.${MODULE_NAME}_${VERSION}_installed)
+    set(_${_MOD_NAME_UPPER}_LOADED_FILE ${CMAKE_CURRENT_BINARY_DIR}/.${MODULE_NAME}_${_VERSION}_loaded)
+    set(_${_MOD_NAME_UPPER}_INSTALLED_FILE ${CMAKE_CURRENT_BINARY_DIR}/.${MODULE_NAME}_${_VERSION}_installed)
+    unset(_VERSION)
 endmacro(bcm_3rdparty_module_name)
 
 #======
@@ -74,12 +78,18 @@ macro(bcm_3rdparty_download_wget DOMAIN ARCHIVE)
         set(_CMD_PATCH COMMAND patch -p0 -i ${_PATCH_FILE} && echo ${_MOD_NAME} patched)
     endif()
 
+    # Pull archive from public repository only if needed
+    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${ARCHIVE})
+        set(_PULL_ARCHIVE_COMMAND COMMAND cp -f ${CMAKE_CURRENT_SOURCE_DIR}/${ARCHIVE} .)
+    else()
+        set(_PULL_ARCHIVE_COMMAND COMMAND wget --no-check-certificate ${DOMAIN}/${ARCHIVE})
+    endif()
     add_custom_command(OUTPUT ${_${_MOD_NAME_UPPER}_LOADED_FILE}
         COMMAND echo "Loading ${ARCHIVE} from ${DOMAIN}.."
         COMMAND rm -rf ${_${_MOD_NAME_UPPER}_SRC_DIR} ${DOMAIN}/${ARCHIVE}*
-        COMMAND wget --no-check-certificate ${DOMAIN}/${ARCHIVE}
+        ${_PULL_ARCHIVE_COMMAND}
         COMMAND ${_UNPACK_COMMAND} ${ARCHIVE}
-        COMMAND rm ${ARCHIVE}
+        COMMAND rm -f ${ARCHIVE}
         COMMAND mkdir -p ${_${_MOD_NAME_UPPER}_SRC_DIR}/build
         COMMAND touch ${_${_MOD_NAME_UPPER}_LOADED_FILE}
         COMMAND echo "${ARCHIVE} loaded and unpacked in ${_${_MOD_NAME_UPPER}_SRC_DIR}"

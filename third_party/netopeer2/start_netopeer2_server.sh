@@ -12,6 +12,9 @@ export LD_LIBRARY_PATH=$lib_dir:$LD_LIBRARY_PATH
 export SYSREPO_REPOSITORY_PATH=$sysrepo_dir
 export LIBYANG_EXTENSIONS_PLUGINS_DIR=$lib_dir/libyang/extensions
 export LIBYANG_USER_TYPES_PLUGINS_DIR=$lib_dir/libyang/user_types
+# copy OLT certificate
+cp /root/.ssh/polt.cer /certificates/polt.cer
+
 if [ "$1" = "gdb" ]; then
     GDB="gdb --args"
     shift

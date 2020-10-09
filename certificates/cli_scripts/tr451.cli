@@ -1,0 +1,3 @@
+/po/au priv_key=/certificates/vomci_privatekey.pem local_cert=/certificates/vomci.cer peer_cert=/certificates/polt.cer 
+/po/set client_server=client enable=yes
+/po/end client_server=client name=polt-simulator port=8433 host=polt-simulator

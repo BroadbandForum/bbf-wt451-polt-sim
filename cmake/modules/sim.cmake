@@ -15,18 +15,11 @@ add_definitions(-DSIMULATION_BUILD)
 #====
 # Add the compile and link flags we use for simulation
 #====
-set(BCM_CFLAGS      "${GCC_COMMON_CFLAGS} -ggdb -O0")
-set(BCM_CXXFLAGS    "${GCC_COMMON_CXXFLAGS} -ggdb -O0")
+set(BCM_CFLAGS      ${GCC_COMMON_CFLAGS} -ggdb -O0)
+set(BCM_CXXFLAGS    ${GCC_COMMON_CXXFLAGS} -ggdb -O0)
 
-#====
-# Build embedded in 32 bit mode. 64 bit compilation cases problems in drivers.
-#====
-if("${SUBSYSTEM}" STREQUAL "embedded" AND "${PLATFORM}" STREQUAL "maple")
-    set(BCM_CFLAGS "${BCM_CFLAGS} -m32 -march=i386")
-endif()
-
-set(BCM_LFLAGS              "${BCM_CFLAGS}")
-set(BCM_EXTRA_C_WARNINGS    "${BCM_EXTRA_C_WARNINGS} -Wno-switch-bool")
+set(BCM_LFLAGS              ${BCM_CFLAGS})
+set(BCM_EXTRA_C_WARNINGS    ${BCM_EXTRA_C_WARNINGS} -Wno-switch-bool)
 set(BCM_OBJCOPY             objcopy)
 
 #====
@@ -51,4 +44,3 @@ set(BCM_MANIFESTS x86)
 # --host setting for 3rd-party packages using automake
 #====
 set(BCM_CONFIG_HOST x86_64-linux)
-

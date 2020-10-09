@@ -102,10 +102,55 @@ if (USE_OBBAA_YANG_MODELS)
         ${_TR_385_INTERFACE_DIR}/bbf-mgmd.yang
         ${_TR_385_INTERFACE_DIR}/bbf-melt.yang
         ${_TR_385_INTERFACE_DIR}/bbf-subscriber-profiles.yang
-        ${_TR_385_INTERFACE_DIR}/bbf-ldra.yang
-    )
+        ${_TR_385_INTERFACE_DIR}/bbf-ldra.yang)
 
+    # Import physical OLT models
+list(APPEND _IMPORT_MODELS
+        ${_OB_BAA_MODEL_DIR}/bbf-availability.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-ethernet-performance-management.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-interface-port-reference.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-interfaces-performance-management.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-interfaces-statistics-management.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-l2-dhcpv4-relay-forwarding.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-l2-forwarding-shared-fdb.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-ptm.yang
+        ${_OB_BAA_MODEL_DIR}/bbf-software-image-management.yang
+        ${_OB_BAA_MODEL_DIR}/iana-crypt-hash@2014-08-06.yang
+        ${_OB_BAA_MODEL_DIR}/ieee802-ethernet-interface@2017-02-23.yang
+        ${_OB_BAA_MODEL_DIR}/ietf-alarms-x733@2019-09-11.yang
+        ${_OB_BAA_MODEL_DIR}/ietf-hardware-state@2018-03-13.yang)
+
+    set(bbf-availability-features availability)
+    set(bbf-fast-availability-features availability)
+    set(bbf-fast-features annex-x annex-d dta andeftr rmcr)
+    set(bbf-fast-perf-types-features performance-24hr)
+    set(bbf-ghn-perf-types-features performance-24hr)
+    set(bbf-hardware-rpf-dpu-features performance-24hr)
+    set(bbf-interfaces-performance-management-features performance-24hr)
+    set(bbf-l2-forwarding-features flooding-policies flooding-policies-profiles forwarder-port-groups read-system-fdb-capacity mac-learning-control-profiles)
+    set(bbf-melt-features melt-p melt-pmd-reporting-parameter-reliability melt-pmd-measurement-parameter-reliability melt-processing-derived-parameter-reliability)
+    set(bbf-mgmd-configuration-multicast-snoop-features mgmd-snoop-last-leave)
+    set(bbf-mgmd-features mgmd-proxy mgmd-snoop-transparent mgmd-snoop-with-proxy-reporting multicast-cac multicast-package multicast-preview mgmd-group-ip-range static-multicast-host-associations)
+    set(bbf-qos-policing-features single-rate-two-color-marker single-rate-three-color-marker two-rate-three-color-marker two-rate-three-color-marker-mef policing-profile-ref)
+    set(bbf-qos-traffic-mngt-features pre-emption tc-id-2-queue-id-mapping-config)
+    set(bbf-selt-features selt-p extended-bandwidth-selt-uer extended-bandwidth-selt-qln extended-bandwidth-selt-tflog)
+    set(bbf-software-image-management-features software-actions)
+    set(bbf-vdsl-availability-features availability)
+    set(bbf-vdsl-features virtual-noise sos impulse-noise-monitoring re-initialization-policy vectoring data-gathering)
+    set(bbf-vdsl-base-features data-rate-profile-leftr)
+    set(bbf-vdsl-performance-management-features performance-24hr)
+    set(bbf-xpon-features ictp-support configurable-ictp-proxy-tcp-port pon-pools)
+    set(bbf-xponani-features configurable-ani-onu-id configurable-ani-management-gem-port-id)
+    set(iana-crypt-hash-features crypt-hash-md5 crypt-hash-sha-256 crypt-hash-sha-512)
+    set(ieee802-dot1x-features pacp-eap-supplicant pacp-eap-authenticator mka macsec announcements listener virtual-ports in-service-upgrades)
+    set(ietf-alarms-x733-features configure-x733-mapping)
+    set(ietf-alarms-features operator-actions alarm-shelving alarm-history alarm-summary alarm-profile severity-assignment)
+    set(ietf-hardware-state-features entity-mib hardware-state hardware-sensor)
     set(ietf-hardware-features entity-mib hardware-state hardware-sensor hardware-config)
+    set(ietf-ipfix-psamp-features exporter collector meter psampSampCountBased psampSampTimeBased psampSampRandOutOfN psampSampUniProb psampFilterMatch psampFilterHash immediateCache timeoutCache naturalCache permanentCache udpTransport tcpTransport fileReader fileWriter)
+    set(ietf-netconf-features candidate confirmed-commit rollback-on-error validate startup url xpath)
+    set(ietf-system-features radius authentication local-users radius-authentication ntp ntp-udp-port timezone-name dns-udp-tcp-port)
+    set(ieee802-ethernet-interface-features ethernet-pfc)
 
 else()
     set(_IMPORT_MODELS

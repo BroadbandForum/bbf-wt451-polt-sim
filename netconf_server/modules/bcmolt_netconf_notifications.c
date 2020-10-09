@@ -40,7 +40,7 @@
    representing 4-byte vendor-specific id
 */
 bcmos_errno bcmolt_xpon_v_ani_state_change(const char *cterm_name, uint16_t onu_id,
-    const uint8_t *serial_number, bcmos_bool is_present, bcmos_bool is_active)
+    const uint8_t *serial_number, bcmos_bool has_v_ani, bcmos_bool onu_present)
 {
     sr_val_t values[5] = {};
     uint32_t num_values;
@@ -68,10 +68,11 @@ bcmos_errno bcmolt_xpon_v_ani_state_change(const char *cterm_name, uint16_t onu_
 
     values[2].xpath = "/" BBF_XPON_ONU_STATES_MODULE_NAME ":onu-state-change/onu-state";
     values[2].type = SR_IDENTITYREF_T;
-    values[2].data.string_val = is_present ?
-        (is_active ? "bbf-xpon-onu-types:onu-present-and-in-discovery" :
-            "bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination") :
-        ((onu_id != XPON_ONU_ID_UNDEFINED) ?
+    values[2].data.string_val = onu_present ?
+        (has_v_ani ? 
+         	"bbf-xpon-onu-types:onu-present-and-on-intended-channel-termination":
+         	"bbf-xpon-onu-types:onu-present-and-unexpected") :
+        (has_v_ani ?
             "bbf-xpon-onu-types:onu-not-present-with-v-ani" :
                 "bbf-xpon-onu-types:onu-not-present-without-v-ani");
 

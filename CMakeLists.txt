@@ -32,7 +32,6 @@ set(CMAKE_INSTALL_PREFIX ${BUILD_TOP})
 #====
 # Add the CMake modules we use here
 #====
-include(sim)
 include(utils)
 include(common_definitions)
 include(build_macros)

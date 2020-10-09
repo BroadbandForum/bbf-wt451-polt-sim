@@ -1,3 +1,26 @@
+/*
+ *  <:copyright-BRCM:2016-2020:Apache:standard
+ *
+ *   Copyright (c) 2016-2020 Broadcom. All Rights Reserved
+ *
+ *   The term “Broadcom” refers to Broadcom Inc. and/or its subsidiaries
+ *
+ *   Licensed under the Apache License, Version 2.0 (the "License");
+ *   you may not use this file except in compliance with the License.
+ *   You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *   Unless required by applicable law or agreed to in writing, software
+ *   distributed under the License is distributed on an "AS IS" BASIS,
+ *   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *   See the License for the specific language governing permissions and
+ *   limitations under the License.
+ *
+ *  :>
+ *
+ *****************************************************************************/
+
 #include <bcmos_system.h>
 #include <bcmcli.h>
 #include <bcmolt_daemon.h>
@@ -48,6 +71,7 @@ static int print_help(const char *cmd)
 #ifdef NETCONF_MODULE_BBF_POLT_VOMCI
         " [-tr451_polt]"
 #endif
+        " [-f init_script]"
         " [-d]"
         " [-log level]"
         " [-srlog level]"
@@ -61,6 +85,7 @@ static int print_help(const char *cmd)
 #ifndef BCM_OPEN_SOURCE
             "\t\t -device ip:port - IP address and port OLT is listening on\n"
 #endif
+            "\t\t -f init_script\trun CLI script\n"
             "\t\t -d - debug mode. Stay in the foreground\n"
             "\t\t -syslog - Log to syslog\n"
 #ifdef BCM_OPEN_SOURCE
@@ -167,6 +192,52 @@ static void _sr_log_cb(sr_log_level_t level, const char *msg)
     }
 }
 
+/* Run CLI script */
+static bcmos_errno _run_cli_script(bcmcli_session *session, const char *fname, bcmos_bool stop_on_error)
+{
+    bcmos_file *script_file;
+    char line_buf[4096];
+    int line = 0;
+    bcmos_errno err = BCM_ERR_OK;
+
+    script_file = bcmos_file_open(fname, BCMOS_FILE_FLAG_READ);
+    if (script_file == NULL)
+    {
+        bcmcli_print(session, "Can't open file %s for reading\n", fname);
+        return BCM_ERR_NOENT;
+    }
+
+    while (bcmos_file_gets(script_file, line_buf, sizeof(line_buf)) != NULL)
+    {
+        ++line;
+
+        /* Echo */
+        bcmcli_print(session, "%d: %s\n", line, line_buf);
+        if (line_buf[0] == '#')
+            continue;
+
+        /* Execute */
+        err = bcmcli_parse(session, line_buf);
+        if (err != BCM_ERR_OK && stop_on_error)
+            break;
+    }
+
+    bcmos_file_close(script_file);
+
+    return err;
+}
+
+/* Run script command handler
+    BCMCLI_MAKE_PARM("name", "Script file name", BCMCLI_PARM_STRING, 0),
+    BCMCLI_MAKE_PARM_ENUM_DEFVAL("stop_on_error", "Stop on error", bcmcli_enum_bool_table, 0, "no"));
+*/
+static int _cmd_run_script(bcmcli_session *sess, const bcmcli_cmd_parm parm[], uint16_t nParms)
+{
+    const char *filename = (const char *)parm[0].value.string;
+    bcmos_bool stop_on_error = (bcmos_bool)parm[1].value.number;
+    return _run_cli_script(sess, filename, stop_on_error);
+}
+
 static bcmos_errno _cli_quit(bcmcli_session *session, const bcmcli_cmd_parm parm[], uint16_t n_parms)
 {
     bcmcli_print(session, "NETCONF server terminated by CLI command\n");
@@ -202,6 +273,7 @@ int main(int argc, char *argv[])
     bcmos_module_parm mp = {
         .qparm.name = "netconf"
     };
+    const char *init_script_name = NULL;
     bcmos_errno rc;
     int i;
     int sr_rc;
@@ -288,6 +360,13 @@ int main(int argc, char *argv[])
                 return print_help(argv[0]);
         }
 #endif
+        else if (!strcmp(argv[i], "-f"))
+        {
+            ++i;
+            if (i >= argc)
+                return print_help(argv[0]);
+            init_script_name = argv[i];
+        }
         else
         {
             return print_help(argv[0]);
@@ -444,7 +523,20 @@ int main(int argc, char *argv[])
     if (!do_not_daemonize)
         bcmolt_daemon_init_completed();
 
+    /* Add Execute Script command */
+    BCMCLI_MAKE_CMD(NULL, "run", "Run CLI script", _cmd_run_script,
+        BCMCLI_MAKE_PARM("name", "Script file name", BCMCLI_PARM_STRING, 0),
+        BCMCLI_MAKE_PARM_ENUM_DEFVAL("stop_on_error", "Stop on error", bcmcli_enum_bool_table, 0, "no"));
+
     BCMCLI_MAKE_CMD_NOPARM(NULL, "quit", "quit", _cli_quit);
+
+    /* Run init script if any */
+    if (init_script_name)
+    {
+        rc = _run_cli_script(current_session, init_script_name, BCMOS_FALSE);
+        if (rc != BCM_ERR_OK)
+            return rc;
+    }
 
     /* Handle CLI input */
     while (!bcmcli_is_stopped(current_session))

@@ -1,0 +1,2 @@
+/po/set client_server=server enable=yes
+/po/au priv_key=/root/.ssh/polt.pem local_cert=/root/.ssh/polt.cer peer_cert=/certificates/vomci.cer

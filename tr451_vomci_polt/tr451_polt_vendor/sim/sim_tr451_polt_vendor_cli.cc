@@ -26,14 +26,16 @@
 #include <sim_tr451_polt_vendor_internal.h>
 
 #define TR451_POLT_DEFAULT_LISTEN_FROM_ONU_SIM_PORT 50500
-static uint8_t inject_buffer[48];
+static uint8_t inject_buffer[44];
 
 /* Inject OMCI_RX packet */
 static bcmos_errno polt_cli_inject_omci_rx(bcmcli_session *session, const bcmcli_cmd_parm parm[], uint16_t nparms)
 {
     const char *cterm_name = (const char *)parm[0].value.string;
     uint16_t onu_id = (uint16_t)parm[1].value.unumber;
-    sim_tr451_vendor_packet_received_from_onu(cterm_name, onu_id, inject_buffer, sizeof(inject_buffer));
+    sim_tr451_vendor_packet_received_from_onu(cterm_name, onu_id,
+        inject_buffer,
+        bcmolt_buf_get_used(&parm[2].value.buffer));
     /* Clear buffer for the next iteration */
     memset(inject_buffer, 0, sizeof(inject_buffer));
     return BCM_ERR_OK;

@@ -2,9 +2,9 @@
 #
 include(third_party)
 
-bcm_3rdparty_module_name(openssl "1.1.0j")
+bcm_3rdparty_module_name(openssl "1.1.1e")
 
-bcm_3rdparty_download_wget("https://www.openssl.org/source/old/1.1.0" "openssl-${OPENSSL_VERSION}.tar.gz")
+bcm_3rdparty_download_wget("https://www.openssl.org/source/old/1.1.1" "openssl-${OPENSSL_VERSION}.tar.gz")
 
 bcm_3rdparty_add_dependencies(zlib)
 

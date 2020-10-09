@@ -142,12 +142,13 @@ void nc_cfg_copy(sr_session_ctx_t *srs, const char *model, nc_datastore_type fro
 {
     char *src_path = NULL;
     char *cmd = NULL;
+    int n1, n2;
 
-    asprintf(&src_path, SR_DATA_SEARCH_DIR "/%s.%s", model, nc_ds_suffix[from]);
-    asprintf(&cmd, "cp -f " SR_DATA_SEARCH_DIR "/%s.%s " SR_DATA_SEARCH_DIR "/%s.%s",
+    n1 = asprintf(&src_path, SR_DATA_SEARCH_DIR "/%s.%s", model, nc_ds_suffix[from]);
+    n2 = asprintf(&cmd, "cp -f " SR_DATA_SEARCH_DIR "/%s.%s " SR_DATA_SEARCH_DIR "/%s.%s",
         model, nc_ds_suffix[from], model, nc_ds_suffix[to]);
 
-    if (!cmd || !src_path)
+    if (!cmd || !src_path || n1 < 0 || n2 < 0)
     {
         NC_LOG_ERR("%s: failed to copy configuration from %s to %s: no memory\n",
             model, nc_ds_suffix[from], nc_ds_suffix[to]);
@@ -186,18 +187,11 @@ void nc_cfg_reset(sr_session_ctx_t *srs, const char *model, nc_datastore_type ds
 {
     char *fname = NULL, *cmd = NULL;
     int rc = -1;
+    int n1, n2;
 
-    asprintf(&fname, SR_DATA_SEARCH_DIR "/%s.%s", model, nc_ds_suffix[ds]);
-
-    /* Do nothing if file doesn't exist */
-    if (!nc_file_exist(fname))
-    {
-        free(fname);
-        return;
-    }
-
-    asprintf(&cmd, "touch %s", fname);
-    if (!fname || !cmd)
+    n1 = asprintf(&fname, SR_DATA_SEARCH_DIR "/%s.%s", model, nc_ds_suffix[ds]);
+    n2 = asprintf(&cmd, "touch %s", fname);
+    if (!fname || !cmd || n1 < 0 || n2 < 0)
     {
         NC_LOG_ERR("%s: failed to reset %s configuration: no memory\n", model, nc_ds_suffix[ds]);
         if (fname)
@@ -206,6 +200,15 @@ void nc_cfg_reset(sr_session_ctx_t *srs, const char *model, nc_datastore_type ds
             free(cmd);
         return;
     }
+
+    /* Do nothing if file doesn't exist */
+    if (!nc_file_exist(fname))
+    {
+        free(fname);
+        free(cmd);
+        return;
+    }
+
     if (!unlink(fname))
         rc = system(cmd);
     free(fname);
@@ -225,11 +228,12 @@ void nc_error_reply(sr_session_ctx_t *srs, const char *xpath, const char *format
 {
     va_list args;
     char *msg = NULL;
+    int n;
 
     va_start(args, format);
-    vasprintf(&msg, format, args);
+    n = vasprintf(&msg, format, args);
     va_end(args);
-    if (msg)
+    if (msg && n > 0)
     {
         sr_set_error(srs, xpath, msg);
         free(msg);
@@ -345,7 +349,7 @@ int nc_sr_sub_value_add(
 
     if (snprintf(xpath, sizeof(xpath_buf), "%s/%s", xpath_base, value_name) > sizeof(xpath_buf) - 1)
     {
-        if (!asprintf(&xpath, "%s/%s", xpath_base, value_name))
+        if (asprintf(&xpath, "%s/%s", xpath_base, value_name) <= 0)
             return SR_ERR_NOMEM;
     }
     sr_rc = nc_sr_value_add(xpath, type, string_val, values, values_cnt);
@@ -375,7 +379,7 @@ struct lyd_node *nc_ly_sub_value_add(
 
     if (snprintf(xpath, sizeof(xpath_buf), "%s/%s", xpath_base, value_name) > sizeof(xpath_buf) - 1)
     {
-        if (!asprintf(&xpath, "%s/%s", xpath_base, value_name))
+        if (asprintf(&xpath, "%s/%s", xpath_base, value_name) <= 0)
             return parent;
     }
     result = lyd_new_path(parent, ctx, xpath, (void *)(long)string_val, LYD_ANYDATA_CONSTSTRING, 0);

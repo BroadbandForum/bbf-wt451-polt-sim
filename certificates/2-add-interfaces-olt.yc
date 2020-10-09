@@ -36,13 +36,7 @@
    <if:interface>
       <if:name>channelgroup.1</if:name>
       <if:type xmlns:bbf-xponift="urn:bbf:yang:bbf-xpon-if-type">bbf-xponift:channel-group</if:type>
-      <bbf-xpon:channel-group xmlns="urn:bbf:yang:bbf-xpon">
-         <pon-pools>
-            <pon-pool>
-               <name>pool1</name>
-               <channel-termination-ref>channeltermination.1</channel-termination-ref>
-            </pon-pool>
-         </pon-pools>
+      <bbf-xpon:channel-group xmlns:bbf-xpon="urn:bbf:yang:bbf-xpon">
       </bbf-xpon:channel-group>
    </if:interface>
    <if:interface>

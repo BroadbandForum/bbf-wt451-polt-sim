@@ -179,3 +179,62 @@ PHONY += help_params
 
 help: help_targets help_params
 PHONY += help
+
+#====
+# BBF additions
+#====
+
+# docker support; enabled only if Dockerfile exists and DOCKER-NAME is defined
+DOCKER-NAME = obbaa-polt-simulator
+
+DOCKER-ORG = broadbandforum
+DOCKER-TAG = latest
+
+DOCKER-ARGS =
+DOCKER-CMD = bash
+
+ifneq "$(wildcard Dockerfile)" ""
+ifneq "$(DOCKER-NAME)" ""
+
+DOCKER-IMAGE = $(DOCKER-NAME:%=$(DOCKER-ORG)/%:$(DOCKER-TAG))
+
+docker-build:
+	docker image build --tag=$(DOCKER-IMAGE) .
+
+docker-pull:
+	docker image pull $(DOCKER-IMAGE)
+
+docker-push: docker-build
+	docker image push $(DOCKER-IMAGE)
+
+docker-clean:
+	-docker image rm $(DOCKER-IMAGE)
+
+docker-run:
+	docker container run -it --name $(DOCKER-NAME) --rm $(DOCKER-ARGS) $(DOCKER-IMAGE) $(DOCKER-CMD)
+
+docker-exec:
+	docker container exec -it $(DOCKER-ARGS) $(DOCKER-NAME) $(DOCKER-CMD)
+
+# XXX this needs more thought; probably should exist separately from 'run'
+docker-link:
+	docker container run -it --link $(DOCKER-NAME) --rm $(DOCKER-ARGS) $(DOCKER-IMAGE) $(DOCKER-CMD)
+
+docker-restart:
+	docker container restart $(DOCKER-NAME)
+
+# Ctrl-P Ctrl-Q detaches without stopping
+docker-attach:
+	docker container attach $(DOCKER-NAME)
+
+docker-stop:
+	-docker container stop $(DOCKER-NAME)
+	-docker container rm $(DOCKER-NAME)
+
+# XXX this is too draconian
+docker-prune: docker-stop
+	-docker container prune --filter "until=24h" --force
+	-docker image prune --force
+
+endif # DOCKER-NAME
+endif # Dockerfile

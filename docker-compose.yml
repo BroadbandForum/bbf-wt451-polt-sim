@@ -1,0 +1,19 @@
+version: "3.5"
+
+
+services:
+  polt-simulator:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: broadbandforum/obbaa-polt-simulator:latest
+    stdin_open: true
+    tty: true
+    container_name: polt-simulator_compose
+    command: -dummy_tr385 -f /certificates/cli_scripts/read_certs_start_server.cli
+    environment:
+      - PASSWD=root
+    ports:
+      - "10830:10830"
+    volumes:
+      - "./certificates:/certificates"

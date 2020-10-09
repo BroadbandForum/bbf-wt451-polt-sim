@@ -50,7 +50,7 @@ This sublayer is controlled by CLI commands that allow to
 
 HowTo Build
 ===========
-The build machine must have gcc, g++, make, cmake and wget installed.
+The build machine must have gcc, g++, make, ccache, cmake and wget installed.
 Provided that these prerequisites are met, the build is invoked using
 "make" command.
 It will pull a number of third party packages, such as grpc, openssh,
@@ -117,6 +117,23 @@ bcmolt_netconf_server [-d] [-dummy_tr385] [-log level] [-srlog level] [-tr451_po
 Parameters are self-explanatory.
 "-d" is recommented because using CLI in foreground mode is much more convenient
 ```
+Build and start via docker compose
+==================================
+Requirements:
+- Docker engine 17.12.0+
+- Matching docker compose version
+
+To build and start the simulator via docker compose, simply run 'start_polt_simulator.sh' or 
+'start_polt_simulator.sh --build'. The script will create the docker image (if not already present), 
+compile the code inside of the container create the necessary binaries. When startet, the container 
+automatically starts netopeer2 server in debug mode which enables the user to query the output via 
+'docker-compose logs'. The script starts the NETCONF server script with the '-d' switch and can be  
+shut down via CTRL+C. The created container is automatically deleted afterwards to ensure a clean state.
+
+Compose also features an init script. To use this, the container can be started via 'docker-compose up -d' and then, if additional input to the netconf server is necessary, accessed via 'docker-compose attach polt-simulator_compose'.
+The default init script lives at certificates/cli_scripts/read_certs_start_server.cli and can be changed to other scripts by editing the 'command' line of the docker-compose file.
+To change the container's password (which is required to log in via NETCONF), configure the environment variable 'PASSWD' in the docker-compose file.
+
 CLI interface
 =============
 pOLT simulator supports CLI interface with built-in help, history and TAB completion.

@@ -97,6 +97,7 @@ static void bcm_polt_shutdown(void)
     bcmcli_session_close(current_session);
     bcmcli_token_destroy(NULL);
 }
+
 /* quit command handler */
 static int _cmd_quit(bcmcli_session *sess, const bcmcli_cmd_parm parm[], uint16_t nParms)
 {
@@ -108,11 +109,12 @@ static int _cmd_quit(bcmcli_session *sess, const bcmcli_cmd_parm parm[], uint16_
 }
 
 /* Run CLI script */
-static bcmos_errno _run_cli_script(bcmcli_session *session, const char *fname)
+static bcmos_errno _run_cli_script(bcmcli_session *session, const char *fname, bcmos_bool stop_on_error)
 {
     bcmos_file *script_file;
     char line_buf[4096];
     int line = 0;
+    bcmos_errno err = BCM_ERR_OK;
 
     script_file = bcmos_file_open(fname, BCMOS_FILE_FLAG_READ);
     if (script_file == NULL)
@@ -131,12 +133,25 @@ static bcmos_errno _run_cli_script(bcmcli_session *session, const char *fname)
             continue;
 
         /* Execute */
-        bcmcli_parse(session, line_buf);
+        err = bcmcli_parse(session, line_buf);
+        if (err != BCM_ERR_OK && stop_on_error)
+            break;
     }
 
     bcmos_file_close(script_file);
 
-    return BCM_ERR_OK;
+    return err;
+}
+
+/* Run script command handler
+    BCMCLI_MAKE_PARM("name", "Script file name", BCMCLI_PARM_STRING, 0),
+    BCMCLI_MAKE_PARM_ENUM_DEFVAL("stop_on_error", "Stop on error", bcmcli_enum_bool_table, 0, "no"));
+*/
+static int _cmd_run_script(bcmcli_session *sess, const bcmcli_cmd_parm parm[], uint16_t nParms)
+{
+    const char *filename = (const char *)parm[0].value.string;
+    bcmos_bool stop_on_error = (bcmos_bool)parm[1].value.number;
+    return _run_cli_script(sess, filename, stop_on_error);
 }
 
 static int bcm_polt_start(void)
@@ -276,6 +291,11 @@ static int bcm_polt_start(void)
     bcm_dev_log_cli_init(NULL);
 #endif
 
+    /* Add Execute Script command */
+    BCMCLI_MAKE_CMD(NULL, "run", "Run CLI script", _cmd_run_script,
+        BCMCLI_MAKE_PARM("name", "Script file name", BCMCLI_PARM_STRING, 0),
+        BCMCLI_MAKE_PARM_ENUM_DEFVAL("stop_on_error", "Stop on error", bcmcli_enum_bool_table, 0, "no"));
+
     /* Add quit command */
     BCMCLI_MAKE_CMD_NOPARM(NULL, "quit", "Quit", _cmd_quit);
 
@@ -289,7 +309,7 @@ static int bcm_polt_start(void)
     /* Run init script if any */
     if (init_script_name)
     {
-        rc = _run_cli_script(current_session, init_script_name);
+        rc = _run_cli_script(current_session, init_script_name, BCMOS_FALSE);
         if (rc != BCM_ERR_OK)
             return rc;
     }

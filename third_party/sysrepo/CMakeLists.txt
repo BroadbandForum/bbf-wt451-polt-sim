@@ -2,17 +2,20 @@
 #
 include(third_party)
 
-bcm_3rdparty_module_name(sysrepo "1.4.2")
-
-bcm_3rdparty_add_dependencies(libev libredblack libyang protobuf protobuf-c sysrepo-commands)
-
 if(NETCONF_TOOLS_FROM_DEVEL)
-    set(SYSREPO_VERSION devel)
+    set(_VERSION "devel")
+else()
+    set(_VERSION "1.4.66")
+endif()
+bcm_3rdparty_module_name(sysrepo ${_VERSION})
+
+if("${SYSREPO_VERSION}" STREQUAL "devel")
     bcm_3rdparty_download_wget("https://github.com/sysrepo/sysrepo/archive" "devel.zip" "sysrepo-devel")
 else()
     bcm_3rdparty_download_wget("https://github.com/sysrepo/sysrepo/archive" "v${SYSREPO_VERSION}.tar.gz")
 endif()
 
+bcm_3rdparty_add_dependencies(libev libredblack libyang protobuf protobuf-c sysrepo-commands)
 bcm_3rdparty_add_build_options(-DBUILD_CPP_EXAMPLES=OFF -DBUILD_EXAMPLES=OFF -DGEN_LANGUAGE_BINDINGS=OFF)
 bcm_3rdparty_add_build_options(-DENABLE_TESTS=OFF -DGEN_PYTHON_BINDINGS=OFF)
 set(_REPO_LOC ${_${_MOD_NAME_UPPER}_INSTALL_TOP}/sysrepo)
@@ -24,7 +27,7 @@ else()
 endif()
 bcm_3rdparty_add_build_options(-DREPO_PATH:PATH=${_REPO_LOC})
 
-bcm_3rdparty_build_cmake()
+bcm_3rdparty_build_cmake(shm_clean install)
 
 bcm_3rdparty_export()
 
